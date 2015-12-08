@@ -3,6 +3,7 @@ defmodule MacrosTest do
 
   alias Spex.Structure.Spec
   alias Spex.Structure.Spec.Describe
+  alias Spex.Structure.Spec.Let
 
   setup do
     :ok
@@ -120,6 +121,128 @@ defmodule MacrosTest do
               }
             },
             "second level b" => %Describe{}
+          }
+        }
+      }
+    }
+  end
+
+  test "let macro keeps track of spec in a structure" do
+    defmodule LetStructureTest do
+      use Spex.Case, async: true
+
+      def start_spec, do: @spex_structure
+
+      describe "first level" do
+        let :first_level_let_1 do
+          IO.puts "-------------------------FUCK------------------------"
+          0 + 0
+          1 + 1
+          2 + 2
+        end
+
+        def first_spec, do: @spex_structure
+
+        describe "second level" do
+          let :second_level_let_1, do: 1 + 1
+          def second_spec, do: @spex_structure
+
+          describe "third level" do
+            let :third_level_let_1, do: 2 + 1
+            def third_spec, do: @spex_structure
+          end
+        end
+
+        describe "second level b" do
+          let :second_level_b_let_1, do: "buganu"
+          def second_spec_b, do: @spex_structure
+        end
+      end
+    end
+
+    first_level_let_1_body = Macro.to_string(quote do
+      IO.puts "-------------------------FUCK------------------------"
+      0 + 0
+      1 + 1
+      2 + 2
+    end)
+    second_level_let_1_body = Macro.to_string(quote do: 1 + 1)
+    third_level_let_1_body = Macro.to_string(quote do: 2 + 1)
+    second_level_b_let_1_body = Macro.to_string(quote do: "buganu")
+
+    assert LetStructureTest.start_spec == %Spec{}
+    assert LetStructureTest.first_spec == %Spec{
+      children: %{
+        "first level" => %Describe{
+          lets: %{
+            first_level_let_1: %Let{name: :first_level_let_1, body: first_level_let_1_body}
+          }
+        }
+      }
+    }
+    assert LetStructureTest.second_spec == %Spec{
+      children: %{
+        "first level" => %Describe{
+          children: %{
+            "second level" => %Describe{
+              lets: %{
+                second_level_let_1: %Let{name: :second_level_let_1, body: second_level_let_1_body}
+              }
+            }
+          },
+          lets: %{
+            first_level_let_1: %Let{name: :first_level_let_1, body: first_level_let_1_body}
+          }
+        }
+      }
+    }
+    assert LetStructureTest.third_spec == %Spec{
+      children: %{
+        "first level" => %Describe{
+          children: %{
+            "second level" => %Describe{
+              children: %{
+                "third level" => %Describe{
+                  lets: %{
+                    third_level_let_1: %Let{name: :third_level_let_1, body: third_level_let_1_body}
+                  }
+                }
+              },
+              lets: %{
+                second_level_let_1: %Let{name: :second_level_let_1, body: second_level_let_1_body}
+              }
+            }
+          },
+          lets: %{
+            first_level_let_1: %Let{name: :first_level_let_1, body: first_level_let_1_body}
+          }
+        }
+      }
+    }
+    assert LetStructureTest.second_spec_b == %Spec{
+      children: %{
+        "first level" => %Describe{
+          children: %{
+            "second level" => %Describe{
+              children: %{
+                "third level" => %Describe{
+                  lets: %{
+                    third_level_let_1: %Let{name: :third_level_let_1, body: third_level_let_1_body}
+                  }
+                }
+              },
+              lets: %{
+                second_level_let_1: %Let{name: :second_level_let_1, body: second_level_let_1_body}
+              }
+            },
+            "second level b" => %Describe{
+              lets: %{
+                second_level_b_let_1: %Let{name: :second_level_b_let_1, body: second_level_b_let_1_body}
+              }
+            }
+          },
+          lets: %{
+            first_level_let_1: %Let{name: :first_level_let_1, body: first_level_let_1_body}
           }
         }
       }

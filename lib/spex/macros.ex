@@ -1,4 +1,40 @@
 defmodule Spex.Macros do
+  @moduledoc """
+  defines the following macros:
+  - describe (xdescribe)
+  - context (xcontext)
+  - before
+  - let
+  - it (xit)
+
+  it examples like:
+
+      describe Calculator do
+        let(:a), do: 1
+        describe "#add" do
+          let(:b), do: 1 + 1
+
+          it "adds correctly" do
+            assert a + b == 3
+          end
+        end
+      end
+
+  will become:
+
+      test "Calculator #add adds correctly" do
+        a = (fn ->
+          1
+        end).()
+
+        b = (fn ->
+          1 + 1
+        end).()
+
+        assert a + b == 3
+      end
+  """
+
   use Spex.Structure
 
   defmacro __using__(_opts) do
@@ -23,10 +59,19 @@ defmodule Spex.Macros do
     end
   end
 
+  defmacro let(name, do: body) do
+    code = Macro.to_string(body)
+    quote do
+      @spex_structure add_let(@spex_structure, @spex_stack, unquote(name), unquote(code))
+    end
+  end
+
   defmacro it(message, do: body) do
     quote do
       full_message = Enum.join(@spex_stack ++ [unquote(message)], " ")
-      test full_message, do: unquote(body)
+      test full_message do
+        unquote(body)
+      end
     end
   end
 

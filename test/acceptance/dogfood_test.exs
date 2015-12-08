@@ -19,6 +19,17 @@ defmodule DogfoodTest do
         assert 1 == 2
       end
     end
+
+    describe "let statements" do
+      let :memo, do: 1
+
+      it "is callable" do
+        # assert memo == 1
+      end
+
+      xit "is memoized" do
+      end
+    end
   end
 
 end
