@@ -1,14 +1,29 @@
 defmodule MacrosTest do
-  use ExUnit.Case, async: true
-  use Spex.Macros
+  use Spex.Case, async: true
+
+  alias Spex.Structure.Spec
+  alias Spex.Structure.Spec.Describe
 
   setup do
     :ok
   end
 
+  # defmodule REPLACE_ME_Test do
+  #   use Spex.Case, async: true
+
+  #   describe "first level" do
+  #     describe "second level" do
+  #       describe "third level" do
+  #       end
+  #     end
+  #     describe "second level b" do
+  #     end
+  #   end
+  # end
+
   test "describe macro keeps track of position in a stack" do
     defmodule DescribeStackTest do
-      use Spex.Macros
+      use Spex.Case, async: true
 
       describe "first level" do
         def first_stack, do: @spex_stack
@@ -46,7 +61,7 @@ defmodule MacrosTest do
 
   test "describe macro keeps track of spec in a structure" do
     defmodule DescribeStructureTest do
-      use Spex.Macros
+      use Spex.Case, async: true
 
       def start_spec, do: @spex_structure
 
@@ -109,5 +124,41 @@ defmodule MacrosTest do
         }
       }
     }
+  end
+
+  test "it macro creates test functions" do
+    defmodule ItTest do
+      use Spex.Case, async: true
+
+      describe "first level" do
+        it "example 1-a", do: assert 1 == 1
+        it "example 1-b", do: assert 1 == 2
+
+        describe "second level" do
+          it "example 2-a", do: assert 1 == 1
+          it "example 2-b", do: assert 1 == 2
+
+          describe "third level" do
+            it "example 3-a", do: assert 1 == 1
+            it "example 3-b", do: assert 1 == 2
+          end
+        end
+
+        describe "second level b" do
+            it "example 2b-a", do: assert 1 == 1
+            it "example 2b-b", do: assert 1 == 2
+        end
+      end
+    end
+
+    funs = ItTest.__info__(:functions)
+    assert funs[:"test first level example 1-a"] == 1
+    assert funs[:"test first level example 1-b"] == 1
+    assert funs[:"test first level second level example 2-a"] == 1
+    assert funs[:"test first level second level example 2-b"] == 1
+    assert funs[:"test first level second level third level example 3-a"] == 1
+    assert funs[:"test first level second level third level example 3-b"] == 1
+    assert funs[:"test first level second level b example 2b-a"] == 1
+    assert funs[:"test first level second level b example 2b-b"] == 1
   end
 end

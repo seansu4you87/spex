@@ -4,10 +4,7 @@ defmodule Spex.Structure do
 
   defmacro __using__(_opts) do
     quote do
-      alias Spex.Structure.Spec
-      alias Spex.Structure.Spec.Describe
-
-      import Spex.Structure
+      import Spex.Structure, only: [add_describe: 2]
     end
   end
 

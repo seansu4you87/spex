@@ -3,11 +3,11 @@ defmodule Spex.Macros do
 
   defmacro __using__(_opts) do
     quote do
-      import Spex.Macros
       use Spex.Structure
+      import Spex.Macros
 
       @spex_stack []
-      @spex_structure %Spec{}
+      @spex_structure %Spex.Structure.Spec{}
     end
   end
 
@@ -20,6 +20,20 @@ defmodule Spex.Macros do
       Module.eval_quoted(__MODULE__, unquote(body))
 
       @spex_stack old_stack
+    end
+  end
+
+  defmacro it(message, do: body) do
+    quote do
+      full_message = Enum.join(@spex_stack ++ [unquote(message)], " ")
+      test full_message, do: unquote(body)
+    end
+  end
+
+  defmacro xit(message, do: body) do
+    quote do
+      @tag :pending
+      it unquote(message), do: unquote(body)
     end
   end
 end
