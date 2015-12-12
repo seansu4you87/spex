@@ -1,5 +1,5 @@
 defmodule MacrosTest do
-  use Spex.Case, async: true
+  use ExUnit.Case, async: true
 
   alias Spex.Structure.Spec
   alias Spex.Structure.Spec.Describe
@@ -26,28 +26,45 @@ defmodule MacrosTest do
     defmodule DescribeStackTest do
       use Spex.Case, async: true
 
+      @get_stack fn ->
+        Agent.get(Spex.Macros.Agent, fn(state) ->
+          Enum.reverse(state.stacks[DescribeStackTest])
+        end)
+      end
+
+
       describe "first level" do
-        def first_stack, do: @spex_stack
+        @first_stack @get_stack.()
+        def first_stack, do: @first_stack
 
         describe "second level" do
-          def second_stack, do: @spex_stack
+          @second_stack @get_stack.()
+          def second_stack, do: @second_stack
 
           describe "third level" do
-            def third_stack, do: @spex_stack
+            @third_stack @get_stack.()
+            def third_stack, do: @third_stack
           end
 
-          def third_stack_end, do: @spex_stack
+          @third_stack_end @get_stack.()
+          def third_stack_end, do: @third_stack_end
         end
-        def second_stack_end, do: @spex_stack
+
+        @second_stack_end @get_stack.()
+        def second_stack_end, do: @second_stack_end
 
         describe "second level b" do
-          def second_stack_b, do: @spex_stack
+          @second_stack_b @get_stack.()
+          def second_stack_b, do: @second_stack_b
         end
-        def second_stack_b_end, do: @spex_stack
+
+        @second_stack_b_end @get_stack.()
+        def second_stack_b_end, do: @second_stack_b_end
 
       end
 
-      def first_stack_end, do: @spex_stack
+      @first_stack_end @get_stack.()
+      def first_stack_end, do: @first_stack_end
     end
 
     assert DescribeStackTest.first_stack == ["first level"]
@@ -64,21 +81,32 @@ defmodule MacrosTest do
     defmodule DescribeStructureTest do
       use Spex.Case, async: true
 
-      def start_spec, do: @spex_structure
+      @get_structure fn ->
+        Agent.get(Spex.Macros.Agent, fn(state) ->
+          state.structures[DescribeStructureTest]
+        end)
+      end
+
+      @start_spec @get_structure.()
+      def start_spec, do: @start_spec
 
       describe "first level" do
-        def first_spec, do: @spex_structure
+        @first_spec @get_structure.()
+        def first_spec, do: @first_spec
 
         describe "second level" do
-          def second_spec, do: @spex_structure
+          @second_spec @get_structure.()
+          def second_spec, do: @second_spec
 
           describe "third level" do
-            def third_spec, do: @spex_structure
+            @third_spec @get_structure.()
+            def third_spec, do: @third_spec
           end
         end
 
         describe "second level b" do
-          def second_spec_b, do: @spex_structure
+          @second_spec_b @get_structure.()
+          def second_spec_b, do: @second_spec_b
         end
       end
     end
@@ -131,7 +159,14 @@ defmodule MacrosTest do
     defmodule LetStructureTest do
       use Spex.Case, async: true
 
-      def start_spec, do: @spex_structure
+      @get_structure fn ->
+        Agent.get(Spex.Macros.Agent, fn(state) ->
+          state.structures[LetStructureTest]
+        end)
+      end
+
+      @start_spec @get_structure.()
+      def start_spec, do: @start_spec
 
       describe "first level" do
         let :first_level_let_1 do
@@ -141,21 +176,25 @@ defmodule MacrosTest do
           2 + 2
         end
 
-        def first_spec, do: @spex_structure
+        @first_spec @get_structure.()
+        def first_spec, do: @first_spec
 
         describe "second level" do
           let :second_level_let_1, do: 1 + 1
-          def second_spec, do: @spex_structure
+          @second_spec @get_structure.()
+          def second_spec, do: @second_spec
 
           describe "third level" do
             let :third_level_let_1, do: 2 + 1
-            def third_spec, do: @spex_structure
+            @third_spec @get_structure.()
+            def third_spec, do: @third_spec
           end
         end
 
         describe "second level b" do
           let :second_level_b_let_1, do: "buganu"
-          def second_spec_b, do: @spex_structure
+          @second_spec_b @get_structure.()
+          def second_spec_b, do: @second_spec_b
         end
       end
     end

@@ -46,7 +46,6 @@ defmodule StructureTest do
     }
   end
 
-  @tag :seanyu
   test "#get_lets" do
     #first level
     spec = %Spec{}

@@ -42,33 +42,41 @@ defmodule Spex.Macros do
       use Spex.Structure
       import Spex.Macros
 
-      @spex_stack []
-      @spex_structure %Spex.Structure.Spec{}
+      Spex.Macros.Agent.put_structure(__MODULE__, %Spex.Structure.Spec{})
     end
   end
 
   defmacro describe(message, do: body) do
     quote do
-      old_stack = @spex_stack
-      @spex_stack (old_stack ++ [unquote(message)])
+      stack = Spex.Macros.Agent.push_stack(__MODULE__, unquote(message))
 
-      @spex_structure add_describe(@spex_structure, @spex_stack)
+      structure = Spex.Macros.Agent.get_structure(__MODULE__)
+      Spex.Macros.Agent.put_structure(
+        __MODULE__,
+        add_describe(structure, Enum.reverse(stack))
+      )
       Module.eval_quoted(__MODULE__, unquote(body))
 
-      @spex_stack old_stack
+      Spex.Macros.Agent.pop_stack(__MODULE__)
     end
   end
 
   defmacro let(name, do: body) do
     code = Macro.to_string(body)
     quote do
-      @spex_structure add_let(@spex_structure, @spex_stack, unquote(name), unquote(code))
+      reversed_stack = Enum.reverse(Spex.Macros.Agent.get_stack(__MODULE__))
+      structure = Spex.Macros.Agent.get_structure(__MODULE__)
+      Spex.Macros.Agent.put_structure(
+        __MODULE__,
+        add_let(structure, reversed_stack, unquote(name), unquote(code))
+      )
     end
   end
 
   defmacro it(message, do: body) do
     quote do
-      full_message = Enum.join(@spex_stack ++ [unquote(message)], " ")
+      reversed_stack = Enum.reverse(Spex.Macros.Agent.get_stack(__MODULE__))
+      full_message = Enum.join(reversed_stack ++ [unquote(message)], " ")
       test full_message do
         unquote(body)
       end
