@@ -24,6 +24,8 @@ defmodule DogfoodTest do
       let :memo, do: 1
 
       it "is callable" do
+        assert Spex.Macros.run == [3, 5, 6]
+        assert Spex.Macros.run2 == [1, 2]
         # assert memo == 1
       end
 
